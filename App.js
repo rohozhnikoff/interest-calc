@@ -8,7 +8,14 @@ import pTypes from 'prop-types';
 
 const AuSliderStyles = StyleSheet.create({
     container: {},
-    slider: {},
+
+    slider: {
+        borderRadius: 40,
+    },
+    sliderComponent: {
+        // borderRadius: 40,
+    },
+
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -17,6 +24,7 @@ const AuSliderStyles = StyleSheet.create({
 
     headerText: {
         color: 'gray',
+        fontSize: 11,
     },
     headerTextValue: {
         position: 'absolute',
@@ -24,9 +32,17 @@ const AuSliderStyles = StyleSheet.create({
     },
 });
 
+const trackImage = require('./assets/AuSlider/track.png');
+const thumbImage = require('./assets/AuSlider/thumb.png');
+
+Slider.defaultProps = {
+    trackImage,
+    thumbImage,
+};
+
 const AuSlider = pure(({ formatValue, ...props }) => {
     return (
-        <View style={AuSliderStyles.container}>
+        <View style={[AuSliderStyles.container, props.styleContainer]}>
             <View style={AuSliderStyles.header}>
                 <Text style={AuSliderStyles.headerText}>{formatValue(props.minimumValue)}</Text>
                 <Text style={AuSliderStyles.headerText}>{formatValue(props.maximumValue)}</Text>
@@ -48,7 +64,9 @@ const AuSlider = pure(({ formatValue, ...props }) => {
                     {formatValue(props.value)}
                 </Text>
             </View>
-            <Slider {...props} style={AuSliderStyles.slider} />
+            <View style={AuSliderStyles.slider}>
+                <Slider {...props} style={[AuSliderStyles.sliderComponent, props.style]} />
+            </View>
         </View>
     );
 });
@@ -59,6 +77,7 @@ AuSlider.defaultProps = {
 AuSlider.propTypes = {
     ...Slider.propTypes,
     formatValue: pTypes.func,
+    // styleContainer
 };
 
 // ----------------------------------------------------------------------------------
@@ -89,12 +108,21 @@ class InterestCalculator extends Component {
     static styles = StyleSheet.create({
         container: {
             flex: 1,
-            width: '96%',
+            width: '100%',
+            alignItems: 'center',
         },
         total: {
             fontWeight: '600',
             color: 'black',
             fontSize: 18,
+        },
+        separatedBox: {
+            // borderBottomWidth: 1,
+            // borderTopWidth: 1,
+            width: '96%',
+            borderColor: 'rgba(0,0,0,.2)',
+            paddingTop: 20,
+            paddingBottom: 20,
         },
     });
     // ----------------------------------------------------------------------------------
@@ -110,6 +138,7 @@ class InterestCalculator extends Component {
 
         return (
             <AuSlider
+                step={500}
                 maximumValue={amountTo}
                 minimumValue={amountFrom}
                 value={amount}
@@ -152,11 +181,15 @@ class InterestCalculator extends Component {
         const { amount, interest } = this.state;
         return (
             <View style={InterestCalculator.styles.container}>
-                {this.renderInterestDropdown()}
-                {this.renderRangeInput()}
-                <Text style={InterestCalculator.styles.total}>
-                    {formatRangeInputValue(amount + amount * (interest / 100))}
-                </Text>
+                <View style={InterestCalculator.styles.separatedBox}>
+                    {this.renderInterestDropdown()}
+                </View>
+                <View style={InterestCalculator.styles.separatedBox}>
+                    {this.renderRangeInput()}
+                    <Text style={InterestCalculator.styles.total}>
+                        {formatRangeInputValue(amount + amount * (interest / 100))}
+                    </Text>
+                </View>
             </View>
         );
     }
