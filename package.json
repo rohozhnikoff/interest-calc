@@ -8,6 +8,9 @@
     "prop-types": "^15.6.1",
     "react": "16.2.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-25.0.0.tar.gz",
-    "recompose": "^0.26.0"
+    "react-redux": "^5.0.7",
+    "recompose": "^0.26.0",
+    "redux": "^3.7.2",
+    "redux-actions": "^2.2.1"
   }
 }

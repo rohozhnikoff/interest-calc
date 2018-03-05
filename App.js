@@ -5,6 +5,31 @@ import { pure } from 'recompose';
 import pTypes from 'prop-types';
 
 // ----------------------------------------------------------------------------------
+import { createStore, combineReducers } from 'redux';
+import { Provider } from 'react-redux';
+import { handleActions } from 'redux-actions';
+
+export const INTEREST_CHANGE = 'INTEREST_CHANGE';
+export const AMOUNT_CHANGE = 'AMOUNT_CHANGE';
+
+const store = createStore(
+    combineReducers({
+        interest: handleActions({ [INTEREST_CHANGE]: (state, { payload }) => payload }, 7.84),
+        amount: handleActions({ [AMOUNT_CHANGE]: (state, { payload }) => payload }, 10000),
+        interestsOptions: (state, action) => {
+            return _.isArray(state)
+                ? state
+                : _.times(10)
+                      .map((n) => 4.7 + n * Math.PI)
+                      .map((n) => n.toFixed(2))
+                      .map((n) => parseFloat(n));
+        },
+        amountTo: () => 250000,
+        amountFrom: () => 500,
+    })
+);
+
+// ----------------------------------------------------------------------------------
 
 const AuSliderStyles = StyleSheet.create({
     container: {},
@@ -81,23 +106,15 @@ AuSlider.propTypes = {
 };
 
 // ----------------------------------------------------------------------------------
-
+import { connect } from 'react-redux';
 class InterestCalculator extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            interest: props.interest || props.interestsOptions[0],
-            amount: props.amount || props.amountFrom,
-        };
-    }
-
     static propTypes = {
-        amountFrom: pTypes.number,
+        amountFrom: pTypes.number.isRequired,
         amountTo: pTypes.number.isRequired,
+        amount: pTypes.number.isRequired,
         currencySymbol: pTypes.oneOf(['£', '€', '$']),
         interestsOptions: pTypes.arrayOf(pTypes.number).isRequired,
-        interest: pTypes.number,
+        interest: pTypes.number.isRequired,
     };
 
     static defaultProps = {
@@ -117,8 +134,6 @@ class InterestCalculator extends Component {
             fontSize: 18,
         },
         separatedBox: {
-            // borderBottomWidth: 1,
-            // borderTopWidth: 1,
             width: '96%',
             borderColor: 'rgba(0,0,0,.2)',
             paddingTop: 20,
@@ -132,9 +147,8 @@ class InterestCalculator extends Component {
             .replace(/./g, (c, i, a) => (i && c !== '.' && (a.length - i) % 3 === 0 ? ',' + c : c));
     // ----------------------------------------------------------------------------------
     renderRangeInput() {
-        const { formatRangeInputValue, onRangeInputChange } = this;
-        const { amount } = this.state;
-        const { amountFrom, amountTo } = this.props;
+        const { formatRangeInputValue } = this;
+        const { amountFrom, amountTo, onRangeInputChange, amount } = this.props;
 
         return (
             <AuSlider
@@ -150,20 +164,13 @@ class InterestCalculator extends Component {
     formatRangeInputValue = (value) => {
         return `${this.props.currencySymbol}${InterestCalculator.formatMoney(value)}`;
     };
-    onRangeInputChange = (amount) => {
-        this.setState({ amount });
-    };
 
     // ----------------------------------------------------------------------------------
-    onInterestChange = (itemValue, itemIndex) => {
-        this.setState({ interest: itemValue });
-    };
+
     renderInterestDropdown() {
-        const { onInterestChange } = this;
-        const { interest } = this.state;
-        const { interestsOptions } = this.props;
+        const { interestsOptions, onInterestChange, interest } = this.props;
         return (
-            <Picker selectedValue={interest} onValueChange={onInterestChange}>
+            <Picker selectedValue={String(interest)} onValueChange={onInterestChange}>
                 {interestsOptions.map((n) => (
                     <Picker.Item
                         label={`${n.toString().replace('.', ',')} %`}
@@ -178,7 +185,7 @@ class InterestCalculator extends Component {
 
     render() {
         const { formatRangeInputValue } = this;
-        const { amount, interest } = this.state;
+        const { amount, interest, total } = this.props;
         return (
             <View style={InterestCalculator.styles.container}>
                 <View style={InterestCalculator.styles.separatedBox}>
@@ -187,42 +194,45 @@ class InterestCalculator extends Component {
                 <View style={InterestCalculator.styles.separatedBox}>
                     {this.renderRangeInput()}
                     <Text style={InterestCalculator.styles.total}>
-                        {formatRangeInputValue(amount + amount * (interest / 100))}
+                        {formatRangeInputValue(total)}
                     </Text>
                 </View>
             </View>
         );
     }
 }
+const InterestCalculatorConnected = connect(
+    ({ interest, amount, amountTo, amountFrom, interestsOptions }) => {
+        return {
+            interest,
+            amount,
+            amountTo,
+            amountFrom,
+            interestsOptions,
+            total: amount + amount * (interest / 100),
+        };
+    },
+    (dispatch) => ({
+        onInterestChange: (value) => dispatch({ type: INTEREST_CHANGE, payload: Number(value) }),
+        onRangeInputChange: (value) => dispatch({ type: AMOUNT_CHANGE, payload: Number(value) }),
+    })
+)(InterestCalculator);
 
 // ----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------
 // ----------------------------------------------------------------------------------
 
-export default class App extends Component {
+class App extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Text>Interest Calculator</Text>
+                <Text>Interest Calculator (redux)</Text>
 
-                <InterestCalculator
-                    {...{
-                        interestsOptions: _.times(10)
-                            .map((n) => 4.7 + n * Math.PI)
-                            .map((n) => n.toFixed(2))
-                            .map((n) => parseFloat(n)),
-                        amountTo: 250000,
-                        amountFrom: 500,
-                        amount: 10000,
-                    }}
-                />
+                <InterestCalculatorConnected />
             </View>
         );
     }
 }
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
     container: {
@@ -233,3 +243,13 @@ const styles = StyleSheet.create({
         paddingTop: 120,
     },
 });
+
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------
+
+export default () => (
+    <Provider store={store}>
+        <App />
+    </Provider>
+);
