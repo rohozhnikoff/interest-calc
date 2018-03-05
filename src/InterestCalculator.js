@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import AuSlider from './AuSlider';
 import InterestDropdown from './InterestDropdown';
+import NumberAnimated from './NumberAnimated';
 
 class InterestCalculator extends Component {
     static propTypes = {
@@ -87,7 +88,11 @@ class InterestCalculator extends Component {
                 <View style={InterestCalculator.styles.separatedBox}>
                     {this.renderRangeInput()}
                     <Text style={InterestCalculator.styles.total}>
-                        {_.isNumber(total) ? formatRangeInputValue(total) : total}
+                        {_.isNumber(total) ? (
+                            <NumberAnimated value={total} format={formatRangeInputValue} />
+                        ) : (
+                            total
+                        )}
                     </Text>
                 </View>
             </View>
