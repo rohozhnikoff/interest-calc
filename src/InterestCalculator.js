@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import pTypes from 'prop-types';
+import _ from 'lodash';
 
 import AuSlider from './AuSlider';
 import InterestDropdown from './InterestDropdown';
@@ -13,6 +14,7 @@ class InterestCalculator extends Component {
         currencySymbol: pTypes.oneOf(['£', '€', '$']),
         interestsOptions: pTypes.arrayOf(pTypes.number).isRequired,
         interest: pTypes.number.isRequired,
+        total: pTypes.oneOfType([pTypes.number, pTypes.string]).isRequired,
     };
 
     static defaultProps = {
@@ -85,7 +87,7 @@ class InterestCalculator extends Component {
                 <View style={InterestCalculator.styles.separatedBox}>
                     {this.renderRangeInput()}
                     <Text style={InterestCalculator.styles.total}>
-                        {formatRangeInputValue(total)}
+                        {_.isNumber(total) ? formatRangeInputValue(total) : total}
                     </Text>
                 </View>
             </View>

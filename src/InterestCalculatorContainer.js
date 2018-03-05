@@ -1,4 +1,5 @@
 import { connect } from 'react-redux';
+import _ from 'lodash';
 import { INTEREST_CHANGE, AMOUNT_CHANGE } from './redux-store';
 import InterestCalculator from './InterestCalculator';
 
@@ -10,7 +11,11 @@ export default connect(
             amountTo,
             amountFrom,
             interestsOptions,
-            total: amount + amount * (interest / 100),
+
+            total:
+                amount === amountTo && interest === _.last(interestsOptions)
+                    ? 'UBER DOHUYA MONEY'
+                    : amount + amount * (interest / 100),
         };
     },
     (dispatch) => ({
